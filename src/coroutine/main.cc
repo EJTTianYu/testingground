@@ -6,6 +6,20 @@
 #include <chrono>  
 #include <typeinfo>
 
+class People {
+public:
+  People(int age): age(age) {};
+public:
+  int age;
+};
+
+class Student: public People {
+public:
+  Student(int age1, int no) : People(age1), no(no) {};
+public:
+  int no;
+};
+
 void run(std::coroutine_handle<> h)
 {
   std::cout<<std::this_thread::get_id()<<" "<<"in Run\n";
@@ -51,6 +65,24 @@ struct return_type {
             std::exit(1);
         }
 
+        double return_value(double a) {
+          dNo = a;
+        }
+
+        int return_value(int a) {
+            no = a;
+        }
+
+        void return_value(People p) {
+          std::cout << "return people"<<std::endl;
+        }
+
+        void return_value(Student p) {
+          std::cout << "return student"<<std::endl;
+        }
+
+        int no = 0;
+        double dNo = 0.0;
         promise_type* prev_ = nullptr;
     };
     
@@ -90,23 +122,45 @@ struct return_type {
       std::cout<<std::this_thread::get_id()<<" "<<"await_resume\n"; 
     }
 
+    int get_result() {
+        return h_.promise().no;
+    }
+
+    double get_dresult() {
+      return h_.promise().dNo;
+    }
+
     std::coroutine_handle<promise_type> h_;
     bool async_ = false;
 };
 
+return_type Foo3()
+{
+  std::cout<<std::this_thread::get_id()<<" "<<"enter Foo3\n";
+  return_type r(true);
+  co_await r;
+  std::cout<<std::this_thread::get_id()<<" "<<"resume in Foo3\n";
+  People people{1};
+  co_return people;
+}
+
 return_type Foo2()
 { 
   std::cout<<std::this_thread::get_id()<<" "<<"enter Foo2\n";
-  return_type r(true);
-  co_await r;
+  auto result = Foo3();
+  co_await result;
   std::cout<<std::this_thread::get_id()<<" "<<"resume in Foo2\n";
+  std::cout<<result.get_dresult()<<"返回值, func Foo2"<<std::endl;
+  co_return 1;
 }
 
 return_type Foo1()
 {
   std::cout<<std::this_thread::get_id()<<" "<<"enter Foo1\n";
-  co_await Foo2();
+  auto result = Foo2();
+  co_await result;
   std::cout<<std::this_thread::get_id()<<" resume in Foo1\n";
+  std::cout<<result.get_result()<<"返回值, func Foo1"<<std::endl;
 }
 
 int main() {
