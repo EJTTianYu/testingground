@@ -4,11 +4,11 @@
 #include "math.h"
 #include <fcntl.h>
 #include <iostream>
-#include <liburing.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#include <liburing.h>
 
 char *test_buf = (char *)"abc";
 struct io_uring *ioring;
@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
     NPosixPositionedWrite(outfd, test_buf, sizeof(test_buf), 1);
   }
   if (strcmp(argv[2], "p") == 0 && strcmp(argv[3], "i") == 0) {
-    // TODO
+    // TODO: almost same as np-i
   }
   return 0;
 }
