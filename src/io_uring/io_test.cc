@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 char *test_buf = (char *)"abc";
+struct io_uring *ioring;
 
 struct file_page {
   file_page(int pages) { iov = (iovec *)calloc(pages, sizeof(struct iovec)); }
@@ -156,7 +157,6 @@ int main(int argc, char *argv[]) {
   }
   if (strcmp(argv[2], "np") == 0 && strcmp(argv[3], "i") == 0) {
     // TODO
-    struct io_uring *ioring;
     io_uring_queue_init(1, ioring, 0);
     IPosixWrite(outfd, test_buf, sizeof(test_buf));
     get_completion_and_print();
