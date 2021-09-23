@@ -4,18 +4,16 @@
 #include "math.h"
 #include <fcntl.h>
 #include <iostream>
+#include <liburing.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/uio.h>
 #include <unistd.h>
-#include <liburing.h>
 
-
-char *test_buf = "abc";
+char *test_buf = (char *)"abc";
 
 struct file_page {
-  file_page(int pages) {
-    iov = (iovec*)calloc(pages, sizeof(struct iovec));
-  }
+  file_page(int pages) { iov = (iovec *)calloc(pages, sizeof(struct iovec)); }
 
   struct iovec *iov;
 };
@@ -71,7 +69,7 @@ bool IPosixWrite(int fd, const char *buf, size_t nbyte) {
   int pages = (int)std::ceil((float)nbyte / PageSize);
   int last_page_size = nbyte % PageSize;
   int page_size = PageSize;
-  file_page* data = new file_page(pages);
+  file_page *data = new file_page(pages);
   char *no_const_buf = const_cast<char *>(buf);
   for (int i = 0; i < pages; i++) {
     data->iov[i].iov_base = no_const_buf + i * page_size;
@@ -86,7 +84,6 @@ bool IPosixWrite(int fd, const char *buf, size_t nbyte) {
   io_uring_submit(ioring);
   return true;
 }
-
 
 // 待改写函数 2
 bool PosixPositionedWrite(int fd, const char *buf, size_t nbyte, off_t offset) {
@@ -114,7 +111,8 @@ bool PosixPositionedWrite(int fd, const char *buf, size_t nbyte, off_t offset) {
 }
 
 // 以 n 模式改写函数 2, current can not run in mac 10
-bool NPosixPositionedWrite(int fd, const char *buf, size_t nbyte, off_t offset) {
+bool NPosixPositionedWrite(int fd, const char *buf, size_t nbyte,
+                           off_t offset) {
   static const int PageSize = 4096;
   //
   int pages = (int)std::ceil((float)nbyte / PageSize);
@@ -135,7 +133,7 @@ bool NPosixPositionedWrite(int fd, const char *buf, size_t nbyte, off_t offset) 
 int get_completion_and_print() {
   struct io_uring_cqe *cqe;
   auto ret = io_uring_wait_cqe(ioring, &cqe);
-  if (ret == 0 && cqe->res >=0) {
+  if (ret == 0 && cqe->res >= 0) {
     struct file_page *fi = (file_page *)io_uring_cqe_get_data(cqe);
     io_uring_cqe_seen(ioring, cqe);
     free(fi->iov[0].iov_base);
@@ -152,25 +150,25 @@ int main(int argc, char *argv[]) {
     argv[3] = "n";
   }
   int outfd = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-  if (argv[2] == "np" && argv[3] == "o") {
+  if (strcmp(argv[2], "np") == 0 && strcmp(argv[3], "o") == 0) {
     PosixWrite(outfd, test_buf, sizeof(test_buf));
   }
-  if (argv[2] == "np" && argv[3] == "n") {
+  if (strcmp(argv[2], "np") == 0 && strcmp(argv[3], "n") == 0) {
     NPosixWrite(outfd, test_buf, sizeof(test_buf));
   }
-  if (argv[2] == "np" && argv[3] == "i") {
+  if (strcmp(argv[2], "np") == 0 && strcmp(argv[3], "i") == 0) {
     // TODO
     io_uring_queue_init(1, ioring, 0);
     IPosixWrite(outfd, test_buf, sizeof(test_buf));
     get_completion_and_print();
   }
-  if (argv[2] == "p" && argv[3] == "o") {
+  if (strcmp(argv[2], "p") == 0 && strcmp(argv[3], "o") == 0) {
     PosixPositionedWrite(outfd, test_buf, sizeof(test_buf), 1);
   }
-  if (argv[2] == "p" && argv[3] == "n") {
+  if (strcmp(argv[2], "p") == 0 && strcmp(argv[3], "n") == 0) {
     NPosixPositionedWrite(outfd, test_buf, sizeof(test_buf), 1);
   }
-  if (argv[2] == "p" && argv[3] == "i") {
+  if (strcmp(argv[2], "p") == 0 && strcmp(argv[3], "i") == 0) {
     // TODO
   }
   return 0;
