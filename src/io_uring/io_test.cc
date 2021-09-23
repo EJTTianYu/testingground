@@ -145,9 +145,9 @@ int get_completion_and_print() {
 int main(int argc, char *argv[]) {
   if (argc < 4) {
     argv[1] =
-        "/Users/tianyugou/git_project/testingground/src/io_uring/data.txt";
-    argv[2] = "p";
-    argv[3] = "n";
+        (char *)"/Users/tianyugou/git_project/testingground/src/io_uring/data.txt";
+    argv[2] = (char *)"p";
+    argv[3] = (char *)"n";
   }
   int outfd = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
   if (strcmp(argv[2], "np") == 0 && strcmp(argv[3], "o") == 0) {
