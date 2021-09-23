@@ -18,8 +18,6 @@ struct file_page {
   struct iovec *iov;
 };
 
-struct io_uring *ioring;
-
 // 待改写函数 1
 bool PosixWrite(int fd, char *buf, size_t nbyte) {
   const size_t kLimit1Gb = 1UL << 30;
@@ -158,6 +156,7 @@ int main(int argc, char *argv[]) {
   }
   if (strcmp(argv[2], "np") == 0 && strcmp(argv[3], "i") == 0) {
     // TODO
+    struct io_uring *ioring;
     io_uring_queue_init(1, ioring, 0);
     IPosixWrite(outfd, test_buf, sizeof(test_buf));
     get_completion_and_print();
