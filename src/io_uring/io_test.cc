@@ -157,6 +157,7 @@ int main(int argc, char *argv[]) {
   }
   if (strcmp(argv[2], "np") == 0 && strcmp(argv[3], "i") == 0) {
     // TODO
+    ioring = new io_uring();
     io_uring_queue_init(1, ioring, 0);
     IPosixWrite(outfd, test_buf, sizeof(test_buf));
     get_completion_and_print();
