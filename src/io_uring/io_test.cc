@@ -136,7 +136,7 @@ int get_completion_and_print() {
   struct io_uring_cqe *cqe;
   auto ret = io_uring_wait_cqe(ioring, &cqe);
   if (ret == 0 && cqe->res >=0) {
-    struct file_page *fi = io_uring_cqe_get_data(cqe);
+    struct file_page *fi = (file_page *)io_uring_cqe_get_data(cqe);
     io_uring_cqe_seen(ioring, cqe);
     free(fi->iov[0].iov_base);
   }
