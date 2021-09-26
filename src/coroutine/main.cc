@@ -55,6 +55,7 @@ struct return_type {
         auto final_suspend() noexcept {
             std::cout<<std::this_thread::get_id() << " this promise pointer in final suspend:"<< (void*)this<<" prev:"<<prev_<<std::endl;
             if (prev_ != nullptr) {
+              std::cout <<"wow, reach here"<<std::endl;
               auto hh = std::coroutine_handle<promise_type>::from_promise(*prev_);
               hh.resume();
             }
@@ -151,7 +152,8 @@ return_type Foo2()
   co_await result;
   std::cout<<std::this_thread::get_id()<<" "<<"resume in Foo2\n";
   std::cout<<result.get_dresult()<<"返回值, func Foo2"<<std::endl;
-  co_return 1;
+  Student student{1, 2};
+  co_return student;
 }
 
 return_type Foo1()
