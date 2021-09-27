@@ -129,6 +129,30 @@ bool NPosixPositionedWrite(int fd, const char *buf, size_t nbyte,
   return true;
 }
 
+// 以 i 模式改写函数 1
+bool IPosixPositionedWrite(int fd, const char *buf, size_t nbyte,
+                           off_t offset) {
+  static const int PageSize = 4096;
+  //
+  int pages = (int)std::ceil((float)nbyte / PageSize);
+  int last_page_size = nbyte % PageSize;
+  int page_size = PageSize;
+  file_page *data = new file_page(pages);
+  char *no_const_buf = const_cast<char *>(buf);
+  for (int i = 0; i < pages; i++) {
+    data->iov[i].iov_base = no_const_buf + i * page_size;
+    if (i == pages - 1 && last_page_size != 0)
+      page_size = last_page_size;
+    data->iov[i].iov_len = page_size;
+  }
+
+  auto sqe = io_uring_get_sqe(ioring);
+  io_uring_prep_writev(sqe, fd, data->iov, pages, offset);
+  io_uring_sqe_set_data(sqe, data);
+  io_uring_submit(ioring);
+  return true;
+}
+
 int get_completion_and_print() {
   struct io_uring_cqe *cqe;
   auto ret = io_uring_wait_cqe(ioring, &cqe);
@@ -169,6 +193,10 @@ int main(int argc, char *argv[]) {
   }
   if (strcmp(argv[2], "p") == 0 && strcmp(argv[3], "i") == 0) {
     // TODO: almost same as np-i
+    ioring = new io_uring();
+    io_uring_queue_init(1, ioring, 0);
+    IPosixPositionedWrite(outfd, test_buf, sizeof(test_buf), 1);
+    get_completion_and_print();
   }
   return 0;
 }
